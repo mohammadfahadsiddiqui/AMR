@@ -1,0 +1,426 @@
+{
+  "Nitrofurantoin": {
+    "top_features": [
+      {
+        "feature": "organism_E_coli",
+        "mean_shap": 0.2067
+      },
+      {
+        "feature": "recent_antibiotic_use_90d",
+        "mean_shap": 0.2019
+      },
+      {
+        "feature": "recent_hospitalization_90d",
+        "mean_shap": 0.1424
+      },
+      {
+        "feature": "age",
+        "mean_shap": 0.0892
+      },
+      {
+        "feature": "wbc_count_k_ul",
+        "mean_shap": 0.0891
+      },
+      {
+        "feature": "organism_Pseudomonas_aeruginosa",
+        "mean_shap": 0.0884
+      },
+      {
+        "feature": "creatinine_mg_dl",
+        "mean_shap": 0.0839
+      },
+      {
+        "feature": "organism_Proteus_mirabilis",
+        "mean_shap": 0.0748
+      },
+      {
+        "feature": "prior_resistant_culture_1yr",
+        "mean_shap": 0.0642
+      },
+      {
+        "feature": "diabetes",
+        "mean_shap": 0.0462
+      },
+      {
+        "feature": "catheter_use",
+        "mean_shap": 0.0406
+      },
+      {
+        "feature": "num_prior_uti_1yr",
+        "mean_shap": 0.0399
+      }
+    ],
+    "expected_value": 0.028719523921608925
+  },
+  "Trimethoprim-Sulfamethoxazole": {
+    "top_features": [
+      {
+        "feature": "recent_antibiotic_use_90d",
+        "mean_shap": 0.0784
+      },
+      {
+        "feature": "recent_hospitalization_90d",
+        "mean_shap": 0.0519
+      },
+      {
+        "feature": "organism_Enterococcus_faecalis",
+        "mean_shap": 0.0305
+      },
+      {
+        "feature": "prior_resistant_culture_1yr",
+        "mean_shap": 0.0227
+      },
+      {
+        "feature": "num_prior_uti_1yr",
+        "mean_shap": 0.0201
+      },
+      {
+        "feature": "age",
+        "mean_shap": 0.0154
+      },
+      {
+        "feature": "diabetes",
+        "mean_shap": 0.0131
+      },
+      {
+        "feature": "infection_type_Complicated_UTI",
+        "mean_shap": 0.0118
+      },
+      {
+        "feature": "infection_type_UTI",
+        "mean_shap": 0.0111
+      },
+      {
+        "feature": "catheter_use",
+        "mean_shap": 0.0106
+      },
+      {
+        "feature": "wbc_count_k_ul",
+        "mean_shap": 0.0055
+      },
+      {
+        "feature": "immunocompromised",
+        "mean_shap": 0.0054
+      }
+    ],
+    "expected_value": 0.5
+  },
+  "Ciprofloxacin": {
+    "top_features": [
+      {
+        "feature": "recent_antibiotic_use_90d",
+        "mean_shap": 0.099
+      },
+      {
+        "feature": "recent_hospitalization_90d",
+        "mean_shap": 0.0563
+      },
+      {
+        "feature": "prior_resistant_culture_1yr",
+        "mean_shap": 0.0325
+      },
+      {
+        "feature": "num_prior_uti_1yr",
+        "mean_shap": 0.0239
+      },
+      {
+        "feature": "catheter_use",
+        "mean_shap": 0.023
+      },
+      {
+        "feature": "diabetes",
+        "mean_shap": 0.0224
+      },
+      {
+        "feature": "age",
+        "mean_shap": 0.0164
+      },
+      {
+        "feature": "nursing_home_resident",
+        "mean_shap": 0.0124
+      },
+      {
+        "feature": "infection_type_Complicated_UTI",
+        "mean_shap": 0.0121
+      },
+      {
+        "feature": "infection_type_UTI",
+        "mean_shap": 0.0102
+      },
+      {
+        "feature": "organism_Klebsiella_pneumoniae",
+        "mean_shap": 0.0099
+      },
+      {
+        "feature": "immunocompromised",
+        "mean_shap": 0.0067
+      }
+    ],
+    "expected_value": 0.5000000000000001
+  },
+  "Levofloxacin": {
+    "top_features": [
+      {
+        "feature": "recent_antibiotic_use_90d",
+        "mean_shap": 0.0921
+      },
+      {
+        "feature": "recent_hospitalization_90d",
+        "mean_shap": 0.0539
+      },
+      {
+        "feature": "prior_resistant_culture_1yr",
+        "mean_shap": 0.0348
+      },
+      {
+        "feature": "num_prior_uti_1yr",
+        "mean_shap": 0.024
+      },
+      {
+        "feature": "infection_type_Complicated_UTI",
+        "mean_shap": 0.0171
+      },
+      {
+        "feature": "catheter_use",
+        "mean_shap": 0.015
+      },
+      {
+        "feature": "age",
+        "mean_shap": 0.0133
+      },
+      {
+        "feature": "diabetes",
+        "mean_shap": 0.0122
+      },
+      {
+        "feature": "organism_Klebsiella_pneumoniae",
+        "mean_shap": 0.0119
+      },
+      {
+        "feature": "nursing_home_resident",
+        "mean_shap": 0.0109
+      },
+      {
+        "feature": "infection_type_UTI",
+        "mean_shap": 0.0095
+      },
+      {
+        "feature": "organism_E_coli",
+        "mean_shap": 0.0078
+      }
+    ],
+    "expected_value": 0.5000000000000001
+  },
+  "Amoxicillin-Clavulanate": {
+    "top_features": [
+      {
+        "feature": "recent_antibiotic_use_90d",
+        "mean_shap": 0.0722
+      },
+      {
+        "feature": "recent_hospitalization_90d",
+        "mean_shap": 0.0431
+      },
+      {
+        "feature": "prior_resistant_culture_1yr",
+        "mean_shap": 0.0231
+      },
+      {
+        "feature": "organism_Pseudomonas_aeruginosa",
+        "mean_shap": 0.0215
+      },
+      {
+        "feature": "num_prior_uti_1yr",
+        "mean_shap": 0.0176
+      },
+      {
+        "feature": "age",
+        "mean_shap": 0.0173
+      },
+      {
+        "feature": "diabetes",
+        "mean_shap": 0.0155
+      },
+      {
+        "feature": "catheter_use",
+        "mean_shap": 0.0143
+      },
+      {
+        "feature": "nursing_home_resident",
+        "mean_shap": 0.0136
+      },
+      {
+        "feature": "infection_type_UTI",
+        "mean_shap": 0.011
+      },
+      {
+        "feature": "wbc_count_k_ul",
+        "mean_shap": 0.0066
+      },
+      {
+        "feature": "creatinine_mg_dl",
+        "mean_shap": 0.0062
+      }
+    ],
+    "expected_value": 0.5000000000000002
+  },
+  "Ceftriaxone": {
+    "top_features": [
+      {
+        "feature": "recent_antibiotic_use_90d",
+        "mean_shap": 0.4002
+      },
+      {
+        "feature": "recent_hospitalization_90d",
+        "mean_shap": 0.2358
+      },
+      {
+        "feature": "num_prior_uti_1yr",
+        "mean_shap": 0.1434
+      },
+      {
+        "feature": "organism_Enterococcus_faecalis",
+        "mean_shap": 0.1355
+      },
+      {
+        "feature": "prior_resistant_culture_1yr",
+        "mean_shap": 0.128
+      },
+      {
+        "feature": "organism_Pseudomonas_aeruginosa",
+        "mean_shap": 0.1261
+      },
+      {
+        "feature": "catheter_use",
+        "mean_shap": 0.1047
+      },
+      {
+        "feature": "age",
+        "mean_shap": 0.0873
+      },
+      {
+        "feature": "diabetes",
+        "mean_shap": 0.083
+      },
+      {
+        "feature": "wbc_count_k_ul",
+        "mean_shap": 0.0772
+      },
+      {
+        "feature": "infection_type_Complicated_UTI",
+        "mean_shap": 0.071
+      },
+      {
+        "feature": "creatinine_mg_dl",
+        "mean_shap": 0.0701
+      }
+    ],
+    "expected_value": 0.004614951089024544
+  },
+  "Fosfomycin": {
+    "top_features": [
+      {
+        "feature": "age",
+        "mean_shap": 0.1462
+      },
+      {
+        "feature": "recent_antibiotic_use_90d",
+        "mean_shap": 0.1451
+      },
+      {
+        "feature": "creatinine_mg_dl",
+        "mean_shap": 0.1264
+      },
+      {
+        "feature": "wbc_count_k_ul",
+        "mean_shap": 0.1262
+      },
+      {
+        "feature": "organism_Pseudomonas_aeruginosa",
+        "mean_shap": 0.0878
+      },
+      {
+        "feature": "diabetes",
+        "mean_shap": 0.082
+      },
+      {
+        "feature": "num_prior_uti_1yr",
+        "mean_shap": 0.0766
+      },
+      {
+        "feature": "recent_hospitalization_90d",
+        "mean_shap": 0.0752
+      },
+      {
+        "feature": "prior_resistant_culture_1yr",
+        "mean_shap": 0.0571
+      },
+      {
+        "feature": "healthcare_worker",
+        "mean_shap": 0.046
+      },
+      {
+        "feature": "infection_type_UTI",
+        "mean_shap": 0.0421
+      },
+      {
+        "feature": "organism_Enterococcus_faecalis",
+        "mean_shap": 0.034
+      }
+    ],
+    "expected_value": 0.05985799431800842
+  },
+  "Gentamicin": {
+    "top_features": [
+      {
+        "feature": "recent_antibiotic_use_90d",
+        "mean_shap": 0.2724
+      },
+      {
+        "feature": "recent_hospitalization_90d",
+        "mean_shap": 0.2069
+      },
+      {
+        "feature": "num_prior_uti_1yr",
+        "mean_shap": 0.118
+      },
+      {
+        "feature": "organism_Enterococcus_faecalis",
+        "mean_shap": 0.1105
+      },
+      {
+        "feature": "prior_resistant_culture_1yr",
+        "mean_shap": 0.1086
+      },
+      {
+        "feature": "wbc_count_k_ul",
+        "mean_shap": 0.0904
+      },
+      {
+        "feature": "age",
+        "mean_shap": 0.0845
+      },
+      {
+        "feature": "diabetes",
+        "mean_shap": 0.0728
+      },
+      {
+        "feature": "creatinine_mg_dl",
+        "mean_shap": 0.07
+      },
+      {
+        "feature": "catheter_use",
+        "mean_shap": 0.0663
+      },
+      {
+        "feature": "infection_type_UTI",
+        "mean_shap": 0.0543
+      },
+      {
+        "feature": "nursing_home_resident",
+        "mean_shap": 0.0488
+      }
+    ],
+    "expected_value": 0.015544128604233265
+  }
+}

@@ -1,0 +1,160 @@
+"""Configuration module for AMR-Predict.
+
+Defines all paths, feature specifications, targets, validation rules,
+risk category thresholds, and standardized clinical disclaimers.
+"""
+
+from pathlib import Path
+from typing import Dict, List, Any
+
+# Base Directories
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+MODELS_DIR = BASE_DIR / "models"
+ARTIFACTS_DIR = BASE_DIR / "artifacts"
+DATASET_PATH = DATA_DIR / "amr_synthetic_dataset.csv"
+
+# Target Antibiotic Specifications
+# Mapping friendly antibiotic name -> target column in dataset
+ANTIBIOTIC_TARGET_MAP: Dict[str, str] = {
+    "Nitrofurantoin": "Nitrofurantoin_resistant",
+    "Trimethoprim-Sulfamethoxazole": "Trimethoprim_Sulfamethoxazole_resistant",
+    "Ciprofloxacin": "Ciprofloxacin_resistant",
+    "Levofloxacin": "Levofloxacin_resistant",
+    "Amoxicillin-Clavulanate": "Amoxicillin_Clavulanate_resistant",
+    "Ceftriaxone": "Ceftriaxone_resistant",
+    "Fosfomycin": "Fosfomycin_resistant",
+    "Gentamicin": "Gentamicin_resistant",
+}
+
+# Categorical Features
+CATEGORICAL_FEATURES: List[str] = [
+    "sex",
+    "infection_type",
+    "organism",
+]
+
+# Numeric and Binary Input Features
+NUMERIC_FEATURES: List[str] = [
+    "age",
+    "diabetes",
+    "recent_hospitalization_90d",
+    "recent_antibiotic_use_90d",
+    "num_prior_uti_1yr",
+    "catheter_use",
+    "immunocompromised",
+    "nursing_home_resident",
+    "prior_resistant_culture_1yr",
+    "creatinine_mg_dl",
+    "wbc_count_k_ul",
+    "travel_last_6mo",
+    "healthcare_worker",
+]
+
+# All Allowed Model Features (Order preserved for pipeline consistency)
+MODEL_FEATURES: List[str] = CATEGORICAL_FEATURES + NUMERIC_FEATURES
+
+# Excluded Columns to Strictly Prevent Data Leakage
+EXCLUDED_COLUMNS: List[str] = [
+    "patient_id",
+    "Nitrofurantoin_resistance_probability",
+    "Trimethoprim_Sulfamethoxazole_resistance_probability",
+    "Ciprofloxacin_resistance_probability",
+    "Levofloxacin_resistance_probability",
+    "Amoxicillin_Clavulanate_resistance_probability",
+    "Ceftriaxone_resistance_probability",
+    "Fosfomycin_resistance_probability",
+    "Gentamicin_resistance_probability",
+]
+
+# Allowed Categorical Categories for Input Validation
+VALID_CATEGORIES: Dict[str, List[str]] = {
+    "sex": ["F", "M"],
+    "infection_type": [
+        "Catheter_Associated_UTI",
+        "UTI",
+        "Complicated_UTI",
+        "Pyelonephritis",
+    ],
+    "organism": [
+        "Klebsiella_pneumoniae",
+        "E_coli",
+        "Enterococcus_faecalis",
+        "Proteus_mirabilis",
+        "Pseudomonas_aeruginosa",
+        "Staph_saprophyticus",
+    ],
+}
+
+# Numerical Feature Bounds for Data Validation
+NUMERICAL_BOUNDS: Dict[str, Dict[str, float]] = {
+    "age": {"min": 0.0, "max": 120.0},
+    "num_prior_uti_1yr": {"min": 0.0, "max": 50.0},
+    "creatinine_mg_dl": {"min": 0.1, "max": 25.0},
+    "wbc_count_k_ul": {"min": 0.1, "max": 100.0},
+}
+
+# Binary Features (must be 0 or 1)
+BINARY_FEATURES: List[str] = [
+    "diabetes",
+    "recent_hospitalization_90d",
+    "recent_antibiotic_use_90d",
+    "catheter_use",
+    "immunocompromised",
+    "nursing_home_resident",
+    "prior_resistant_culture_1yr",
+    "travel_last_6mo",
+    "healthcare_worker",
+]
+
+# Human-Readable Feature Display Names
+FEATURE_DISPLAY_NAMES: Dict[str, str] = {
+    "age": "Age (years)",
+    "sex": "Sex",
+    "infection_type": "Infection Type",
+    "organism": "Isolated Pathogen",
+    "diabetes": "Diabetes Mellitus",
+    "recent_hospitalization_90d": "Hospitalization (Last 90d)",
+    "recent_antibiotic_use_90d": "Antibiotic Exposure (Last 90d)",
+    "num_prior_uti_1yr": "Prior UTIs (Past 1 Year)",
+    "catheter_use": "Indwelling Catheter",
+    "immunocompromised": "Immunocompromised State",
+    "nursing_home_resident": "Nursing Home Resident",
+    "prior_resistant_culture_1yr": "Prior Resistant Culture (1yr)",
+    "creatinine_mg_dl": "Serum Creatinine (mg/dL)",
+    "wbc_count_k_ul": "WBC Count (k/µL)",
+    "travel_last_6mo": "Recent International Travel (6mo)",
+    "healthcare_worker": "Healthcare Worker",
+}
+
+# Default Prototype Risk Categorization Thresholds
+# Configurable - clearly documented as non-clinical prototype thresholds
+RISK_THRESHOLDS: Dict[str, Any] = {
+    "low_max": 0.35,       # p < 0.35 => Low Risk
+    "moderate_max": 0.65,  # 0.35 <= p <= 0.65 => Moderate Risk
+                           # p > 0.65 => High Risk
+}
+
+def get_risk_category(prob: float) -> str:
+    """Classifies estimated resistance probability into prototype risk tier."""
+    if prob < RISK_THRESHOLDS["low_max"]:
+        return "Low"
+    elif prob <= RISK_THRESHOLDS["moderate_max"]:
+        return "Moderate"
+    else:
+        return "High"
+
+# Mandatory Research Disclaimer
+MEDICAL_DISCLAIMER: str = (
+    "RESEARCH PROTOTYPE ONLY: This application is an educational and research prototype "
+    "and is NOT a medical device. Predictions are generated by machine-learning models "
+    "trained on a synthetic dataset and have NOT been clinically validated. Results must "
+    "NOT be used as a substitute for antimicrobial susceptibility testing (AST), clinical "
+    "culture confirmation, or professional clinical judgment. The system does NOT prescribe "
+    "medications or provide clinical treatment recommendations."
+)
+
+MODEL_ATTRIBUTION_NOTICE: str = (
+    "These features contributed mathematically to the machine-learning model's probability estimate. "
+    "SHAP values reflect model attribution, NOT clinical causality."
+)

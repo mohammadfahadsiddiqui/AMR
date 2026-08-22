@@ -1,0 +1,138 @@
+{
+  "dataset_metadata": {
+    "total_records": 20000,
+    "total_columns": 33,
+    "synthetic_dataset": true,
+    "clinical_validation": false
+  },
+  "age_distribution": {
+    "mean": 55.96,
+    "median": 56.0,
+    "std": 22.2,
+    "min": 18,
+    "max": 94,
+    "histogram": [
+      {
+        "range": "18-25",
+        "count": 2031
+      },
+      {
+        "range": "25-33",
+        "count": 2107
+      },
+      {
+        "range": "33-40",
+        "count": 1909
+      },
+      {
+        "range": "40-48",
+        "count": 2067
+      },
+      {
+        "range": "48-56",
+        "count": 1788
+      },
+      {
+        "range": "56-63",
+        "count": 1986
+      },
+      {
+        "range": "63-71",
+        "count": 2152
+      },
+      {
+        "range": "71-78",
+        "count": 1812
+      },
+      {
+        "range": "78-86",
+        "count": 2116
+      },
+      {
+        "range": "86-94",
+        "count": 2032
+      }
+    ]
+  },
+  "wbc_distribution": {
+    "mean": 9.51,
+    "median": 9.5,
+    "std": 3.44
+  },
+  "creatinine_distribution": {
+    "mean": 1.01,
+    "median": 1.0,
+    "std": 0.38
+  },
+  "sex_distribution": {
+    "F": 12915,
+    "M": 7085
+  },
+  "infection_distribution": {
+    "UTI": 10974,
+    "Complicated_UTI": 3951,
+    "Pyelonephritis": 3035,
+    "Catheter_Associated_UTI": 2040
+  },
+  "organism_distribution": {
+    "E_coli": 11070,
+    "Klebsiella_pneumoniae": 3605,
+    "Proteus_mirabilis": 1998,
+    "Enterococcus_faecalis": 1570,
+    "Pseudomonas_aeruginosa": 951,
+    "Staph_saprophyticus": 806
+  },
+  "clinical_risk_factors_prevalence": {
+    "Diabetes Mellitus": 0.22635,
+    "Hospitalization (Last 90d)": 0.24705,
+    "Antibiotic Exposure (Last 90d)": 0.40095,
+    "Catheter Use": 0.0996,
+    "Immunocompromised": 0.11925,
+    "Nursing Home Resident": 0.06995,
+    "Prior Resistant Culture (1yr)": 0.1498,
+    "Recent Travel (6mo)": 0.09765,
+    "Healthcare Worker": 0.08065
+  },
+  "resistance_prevalence": {
+    "Nitrofurantoin": {
+      "resistant_count": 4383,
+      "total_count": 20000,
+      "resistance_rate": 0.2192
+    },
+    "Trimethoprim-Sulfamethoxazole": {
+      "resistant_count": 10918,
+      "total_count": 20000,
+      "resistance_rate": 0.5459
+    },
+    "Ciprofloxacin": {
+      "resistant_count": 12297,
+      "total_count": 20000,
+      "resistance_rate": 0.6149
+    },
+    "Levofloxacin": {
+      "resistant_count": 11369,
+      "total_count": 20000,
+      "resistance_rate": 0.5685
+    },
+    "Amoxicillin-Clavulanate": {
+      "resistant_count": 11824,
+      "total_count": 20000,
+      "resistance_rate": 0.5912
+    },
+    "Ceftriaxone": {
+      "resistant_count": 9201,
+      "total_count": 20000,
+      "resistance_rate": 0.4601
+    },
+    "Fosfomycin": {
+      "resistant_count": 2046,
+      "total_count": 20000,
+      "resistance_rate": 0.1023
+    },
+    "Gentamicin": {
+      "resistant_count": 6185,
+      "total_count": 20000,
+      "resistance_rate": 0.3093
+    }
+  }
+}
