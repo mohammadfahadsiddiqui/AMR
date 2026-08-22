@@ -4,11 +4,5 @@
       "includeFiles": "models/**|src/**|artifacts/**|app/**",
       "excludeFiles": "data/**|tests/**|*.csv|*.md"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
-    }
-  ]
+  }
 }
