@@ -1,0 +1,17 @@
+# Data
+data/amr_synthetic_dataset.csv
+
+# Tests
+tests/
+.pytest_cache/
+
+# Training & Evaluation scripts (offline only)
+src/train.py
+src/evaluate.py
+
+# Documentation & IDE
+.vscode/
+.idea/
+.agents/
+.gemini/
+*.md

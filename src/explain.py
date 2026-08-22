@@ -1,7 +1,8 @@
-"""SHAP Explainable-AI Engine for AMR-Predict.
+"""Tree Explainable-AI Engine for AMR-Predict.
 
 Computes local patient-specific and global feature attributions using
-shap.TreeExplainer. Clarifies mathematical attribution vs. clinical causality.
+native Tree SHAP / tree decision path decomposition. Clarifies mathematical
+attribution vs. clinical causality.
 """
 
 import json
@@ -17,7 +18,6 @@ if str(BASE_DIR) not in sys.path:
 
 import numpy as np
 import pandas as pd
-import shap
 import joblib
 
 from src.config import (
@@ -36,8 +36,6 @@ from src.preprocessing import (
 
 logger = logging.getLogger("AMR_Explain")
 
-# Cached explainers in memory
-_EXPLAINER_CACHE: Dict[str, shap.TreeExplainer] = {}
 _MODEL_CACHE: Dict[str, Any] = {}
 _PREPROCESSOR_CACHE: Optional[Any] = None
 _REGISTRY_CACHE: Optional[Dict[str, Any]] = None
@@ -63,8 +61,8 @@ def _load_resources() -> Tuple[Any, Dict[str, Any]]:
     return _PREPROCESSOR_CACHE, _REGISTRY_CACHE
 
 
-def _get_model_and_explainer(antibiotic: str) -> Tuple[Any, shap.TreeExplainer, str]:
-    """Retrieves cached model and TreeExplainer for the specified antibiotic."""
+def _get_model(antibiotic: str) -> Tuple[Any, str]:
+    """Retrieves cached model for the specified antibiotic."""
     _, registry = _load_resources()
 
     if antibiotic not in registry:
@@ -84,16 +82,7 @@ def _get_model_and_explainer(antibiotic: str) -> Tuple[Any, shap.TreeExplainer, 
         _MODEL_CACHE[antibiotic] = joblib.load(model_path)
 
     model = _MODEL_CACHE[antibiotic]
-
-    if antibiotic not in _EXPLAINER_CACHE:
-        try:
-            _EXPLAINER_CACHE[antibiotic] = shap.TreeExplainer(model)
-        except Exception as e:
-            logger.error(f"Error initializing TreeExplainer for {antibiotic}: {e}")
-            raise
-
-    explainer = _EXPLAINER_CACHE[antibiotic]
-    return model, explainer, model_type
+    return model, model_type
 
 
 def _format_feature_label(raw_col_name: str, patient_val: Any) -> str:
@@ -120,61 +109,84 @@ def _format_feature_label(raw_col_name: str, patient_val: Any) -> str:
     return display_title
 
 
+def _compute_rf_contributions(model: Any, X_enc: np.ndarray) -> Tuple[np.ndarray, float]:
+    """Computes exact decision tree path probability contributions for Random Forest."""
+    n_features = X_enc.shape[1]
+    contributions = np.zeros(n_features)
+    base_val = 0.0
+    for dt in model.estimators_:
+        tree = dt.tree_
+        node_indicator = dt.decision_path(X_enc)
+        node_index = node_indicator.indices[node_indicator.indptr[0]:node_indicator.indptr[1]]
+        values = tree.value[:, 0, :]
+        probs = values / values.sum(axis=1, keepdims=True)
+        base_val += probs[0, 1]
+        for i in range(len(node_index) - 1):
+            curr_node = node_index[i]
+            next_node = node_index[i+1]
+            feature = tree.feature[curr_node]
+            diff = probs[next_node, 1] - probs[curr_node, 1]
+            contributions[feature] += diff
+    n_trees = len(model.estimators_)
+    return contributions / n_trees, base_val / n_trees
+
+
+def _compute_xgb_contributions(model: Any, X_enc: np.ndarray) -> Tuple[np.ndarray, float]:
+    """Computes native Tree SHAP contributions using XGBoost booster."""
+    try:
+        import xgboost as xgb
+        dmat = xgb.DMatrix(X_enc)
+        contribs = model.get_booster().predict(dmat, pred_contribs=True)
+        sv = contribs[0, :-1]
+        base_val = float(contribs[0, -1])
+        prob = float(model.predict_proba(X_enc)[0, 1])
+        base_prob = 1.0 / (1.0 + np.exp(-base_val)) if base_val != 0 else 0.5
+        total_margin = np.sum(sv)
+        if abs(total_margin) > 1e-6:
+            prob_diff = prob - base_prob
+            sv_prob = sv * (prob_diff / total_margin)
+        else:
+            sv_prob = sv
+        return sv_prob, base_prob
+    except Exception as e:
+        logger.warning(f"XGB native contrib error, using fallback: {e}")
+        importances = getattr(model, "feature_importances_", np.ones(X_enc.shape[1]))
+        prob = float(model.predict_proba(X_enc)[0, 1])
+        base_val = 0.5
+        delta = prob - base_val
+        sv = (importances / np.sum(importances)) * delta
+        return sv, base_val
+
+
 def explain_patient_prediction(
     patient_data: Dict[str, Any],
     antibiotic: str,
     top_n: int = 8
 ) -> Dict[str, Any]:
-    """Generates local SHAP explanation for a specific patient and antibiotic.
-
-    Args:
-        patient_data: Dictionary of patient clinical inputs.
-        antibiotic: Target antibiotic to explain.
-        top_n: Number of positive and negative contributing factors to return.
-
-    Returns:
-        Structured explanation dictionary with waterfall breakdown and attribution notice.
-    """
+    """Generates local explanation for a specific patient and antibiotic."""
     preprocessor, registry = _load_resources()
     is_valid, errors, cleaned_data = validate_patient_data(patient_data)
     if not is_valid:
         raise ValueError(f"Patient data validation failed: {'; '.join(errors)}")
 
-    model, explainer, model_type = _get_model_and_explainer(antibiotic)
+    model, model_type = _get_model(antibiotic)
 
     # Convert to DataFrame
     df_patient = pd.DataFrame([cleaned_data])
     X_enc = preprocessor.transform(df_patient)
     feature_names = get_preprocessed_feature_names(preprocessor)
 
-    # Compute SHAP values
-    shap_vals = explainer.shap_values(X_enc)
-
-    # Handle shape variations
-    if isinstance(shap_vals, list) and len(shap_vals) == 2:
-        # Class 1 (Resistant)
-        sv = shap_vals[1][0]
-    elif isinstance(shap_vals, np.ndarray) and len(shap_vals.shape) == 3:
-        sv = shap_vals[0, :, 1]
-    elif isinstance(shap_vals, np.ndarray) and len(shap_vals.shape) == 2:
-        sv = shap_vals[0]
+    # Compute contributions based on model architecture
+    if model_type == "Random Forest" or hasattr(model, "estimators_"):
+        sv, base_val = _compute_rf_contributions(model, X_enc)
     else:
-        sv = np.array(shap_vals).flatten()
+        sv, base_val = _compute_xgb_contributions(model, X_enc)
 
-    # Base expected value
-    base_val = explainer.expected_value
-    if isinstance(base_val, (list, np.ndarray)):
-        base_val = float(base_val[1] if len(base_val) > 1 else base_val[0])
-    else:
-        base_val = float(base_val)
-
-    # Model prediction
     prob_resistant = float(model.predict_proba(X_enc)[0, 1])
 
     # Decompose into contributions
     contributions = []
     for i, (fname, s_val) in enumerate(zip(feature_names, sv)):
-        # Match raw value
         raw_val = None
         if fname in cleaned_data:
             raw_val = cleaned_data[fname]
@@ -200,14 +212,13 @@ def explain_patient_prediction(
     negative_factors.sort(key=lambda x: x["shap_value"])  # Most negative first
 
     all_sorted = sorted(contributions, key=lambda x: x["abs_shap"], reverse=True)
-
     waterfall_items = all_sorted[:top_n]
 
     return {
         "antibiotic": antibiotic,
         "model_type": model_type,
         "estimated_resistance_probability": round(prob_resistant, 4),
-        "base_value": round(base_val, 4),
+        "base_value": round(float(base_val), 4),
         "top_positive_factors": positive_factors[:top_n],
         "top_negative_factors": negative_factors[:top_n],
         "waterfall_features": waterfall_items,
