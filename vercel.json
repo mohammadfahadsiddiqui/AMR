@@ -1,13 +1,13 @@
 {
   "functions": {
     "api/index.py": {
-      "includeFiles": "app/**|models/**|src/**|artifacts/**",
+      "includeFiles": "models/**|src/**|artifacts/**|app/**",
       "excludeFiles": "data/**|tests/**|*.csv|*.md"
     }
   },
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "destination": "/api/index"
     }
   ]

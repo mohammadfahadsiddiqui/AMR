@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMR Predict | Clinical Antimicrobial Resistance Intelligence</title>
+  <meta name="description" content="AI-powered explainable antimicrobial resistance prediction system for early antibiotic decision support. Research prototype.">
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Chart.js & Plotly CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
+  <!-- Design System CSS -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TOP DEMO MODE BANNER (32px Fixed at Top)
+════════════════════════════════════════════════════════════════════════════ -->
+<aside class="demo-banner" role="status" aria-label="Demo mode status bar">
+  <div class="demo-banner-inner">
+    <span class="demo-tag">DEMO MODE</span>
+    <span>Synthetic dataset &nbsp;·&nbsp; Not for clinical use &nbsp;·&nbsp; Research prototype only</span>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     APP SHELL
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="app-shell">
+
+  <!-- ─── SIDEBAR ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12h4l3-9 5 18 3-9h4"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-name">AMR</span>
+        <span class="sidebar-logo-sub">PREDICT</span>
+      </div>
+    </div>
+
+    <!-- Main Navigation Items -->
+    <nav class="sidebar-nav" aria-label="Page navigation">
+
+      <button class="nav-item active" data-page="page-overview" id="nav-overview" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        Overview
+      </button>
+
+      <button class="nav-item" data-page="page-patients" id="nav-patients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Patients
+      </button>
+
+      <button class="nav-item" data-page="page-analyzer" id="nav-analyzer" style="background:rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+        New Analysis
+        <span class="nav-badge">Live</span>
+      </button>
+
+      <button class="nav-item" data-page="page-history" id="nav-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Predictions
+      </button>
+
+      <button class="nav-item" data-page="page-reports" id="nav-reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Reports
+      </button>
+
+      <button class="nav-item" data-page="page-analytics" id="nav-analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analytics
+      </button>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label">AI MODEL</div>
+
+      <button class="nav-item" data-page="page-model" id="nav-model">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        AMR-X v1.0
+      </button>
+
+      <button class="nav-item" data-page="page-settings" id="nav-settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+
+    </nav>
+
+    <!-- Sidebar Bottom -->
+    <div class="sidebar-bottom">
+      <div class="sidebar-status" role="status" aria-label="AI Engine Status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>AI ENGINE ONLINE</span>
+      </div>
+      <div class="sidebar-profile">
+        <div class="profile-avatar" aria-hidden="true">Dr</div>
+        <div class="profile-info">
+          <div class="profile-name">Clinical User</div>
+          <div class="profile-role">Clinician · Demo Mode</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <!-- ─── TOPBAR ─────────────────────────────────────────────────────────── -->
+  <header class="topbar" role="banner">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Open navigation menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <div class="topbar-left">
+      <div class="breadcrumb">AMR Predict</div>
+      <div class="breadcrumb-current" id="topbarPageTitle">Overview</div>
+    </div>
+
+    <div class="topbar-search" role="search">
+      <div class="search-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" type="search" placeholder="Search patient, prediction or report..." aria-label="Search" id="globalSearchInput">
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="topbar-chip" role="status" aria-label="Model status: online">
+        <span class="chip-dot" aria-hidden="true"></span>
+        AMR-X Online
+      </div>
+
+      <button class="topbar-icon-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+
+      <div class="topbar-avatar" role="img" aria-label="User profile">Dr</div>
+    </div>
+  </header>
+
+  <!-- ─── MAIN WORKSPACE CONTENT ─────────────────────────────────────────── -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PAGE 1: OVERVIEW / DASHBOARD (LIVE METRICS & HISTORY SYNC)
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="page-overview" class="page-view active" aria-label="Overview dashboard">
+
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <div class="page-eyebrow">CLINICAL AI INTELLIGENCE</div>
+            <h1 class="page-title" id="dashGreeting">Good morning, Clinician</h1>
+            <p class="page-subtitle">Monitor antimicrobial resistance predictions, clinical history, and decision support.</p>
+          </div>
+          <button class="btn btn-primary btn-lg" id="btnNewAnalysis" aria-label="Start a new AMR analysis">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New AMR Analysis
+          </button>
+        </div>
+      </div>
+
+      <!-- Metric Cards (Live Database Synced) -->
+      <div class="metrics-grid" role="list" aria-label="Platform metrics">
+        <div class="metric-card" role="listitem">
+          <div class="metric-card-top">
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="metricTotalPreds">—</div>
+          <div class="metric-label">Predictions Logged (DB)</div>
+        </div>
+        <div class="metric-card" role="listitem">
+          <div class="metric-card-top">
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="metricUniquePatients">—</div>
+          <div class="metric-label">Distinct Patients Analyzed</div>
+        </div>
+        <div class="metric-card" role="listitem">
+          <div class="metric-card-top">
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>
+            </div>
+          </div>
+          <div class="metric-value" id="metricHighRiskCount">—</div>
+          <div class="metric-label">High-Risk Cases Identified</div>
+        </div>
+        <div class="metric-card" role="listitem">
+          <div class="metric-card-top">
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+          </div>
+          <div class="metric-value">8 Models</div>
+          <div class="metric-label">Calibrated RF + XGBoost</div>
+        </div>
+      </div>
+
+      <div class="dashboard-body">
+        <div class="grid-2">
+
+          <!-- Quick Start Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="section-title">Quick AMR Analysis</div>
+                <div class="section-desc">Run an ML analysis and save to patient database</div>
+              </div>
+            </div>
+            <div class="disclaimer-box">
+              <strong>RESEARCH PROTOTYPE ONLY:</strong> Predictions are generated by ML models trained on a synthetic dataset and have <strong>NOT</strong> been clinically validated. Do not use for prescribing or treatment decisions.
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.55;">
+              AMR Predict evaluates 16 patient features across <strong>8 antibiotic models</strong>, saves history into the SQLite database, and creates clinical antibiogram decision-support reports.
+            </p>
+            <div class="flex gap-3 flex-wrap">
+              <button class="btn btn-primary" id="btnDashAnalyze">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+                Open Analyzer
+              </button>
+              <button class="btn btn-secondary" id="btnDashModel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4"/></svg>
+                Model Info
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Recent Analyses (Database Connected) -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="section-title">Recent Database Analyses</div>
+                <div class="section-desc">Latest prediction events logged in SQLite</div>
+              </div>
+              <button class="btn btn-sm btn-secondary" onclick="navigateTo('page-history')">View All</button>
+            </div>
+            <div class="recent-analyses-grid" id="recentAnalysesList">
+              <div style="text-align:center; padding:16px; color:var(--text-secondary); font-size:12px;">Loading recent analyses…</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Banner Hero CTA -->
+        <div class="card" style="background: linear-gradient(135deg, var(--amr-primary) 0%, #4f66be 100%); border-color: transparent;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;">
+            <div>
+              <div style="font-size:10px; font-weight:700; letter-spacing:1.8px; text-transform:uppercase; color:rgba(255,255,255,0.65); margin-bottom:4px;">CORE MISSION</div>
+              <div style="font-size:20px; font-weight:800; color:#FFFFFF; letter-spacing:-0.3px;">Predict resistance. Explain every prediction.</div>
+              <div style="font-size:13px; color:rgba(255,255,255,0.75); margin-top:4px;">AI-Powered Explainable AMR Prediction for Early Antibiotic Decision Support</div>
+            </div>
+            <button class="btn" style="background:rgba(255,255,255,0.18); color:#FFFFFF; border:1px solid rgba(255,255,255,0.35);" id="btnHeroCta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+              Start Analysis
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PAGE 2: PATIENTS DIRECTORY (LIVE FROM DATABASE)
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="page-patients" class="page-view" aria-label="Patients directory">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <div class="page-eyebrow">DATABASE DIRECTORY</div>
+            <h1 class="page-title">Patient Directory</h1>
+            <p class="page-subtitle">Patient records aggregated from saved AMR resistance analyses.</p>
+          </div>
+          <button class="btn btn-primary" onclick="navigateTo('page-analyzer')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Patient Analysis
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="filter-bar">
+          <div class="filter-group-left">
+            <div class="filter-input-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="patientSearchInput" class="filter-input" placeholder="Search patient ID, pathogen, infection…">
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="clinical-table" id="patientsTable">
+            <thead>
+              <tr>
+                <th>Patient ID</th>
+                <th>Age / Sex</th>
+                <th>Total Analyses</th>
+                <th>Last Pathogen</th>
+                <th>Last Infection Type</th>
+                <th>Last Risk Status</th>
+                <th>Last Evaluated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="patientsTableBody">
+              <tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-secondary);">Loading patient directory…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PAGE 3: NEW ANALYSIS (PATIENT ANALYZER) — LIVE ML + DB SAVE
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="page-analyzer" class="page-view" aria-label="New AMR analysis">
+
+      <div class="page-header">
+        <div class="page-eyebrow">AMR-X ANALYSIS</div>
+        <h1 class="page-title">New AMR Analysis</h1>
+        <p class="page-subtitle">Enter patient clinical profile to generate resistance predictions across 8 antibiotics.</p>
+      </div>
+
+      <div class="disclaimer-box">
+        <strong>Non-Prescriptive Output:</strong> Probabilities reflect model-estimated likelihood of non-susceptibility. Results do not constitute antimicrobial recommendations or dosage advice.
+      </div>
+
+      <!-- Two-column Analyzer Layout -->
+      <div class="analyzer-layout" id="analyzerLayout">
+
+        <!-- LEFT: Clinical Input Form -->
+        <div class="card card-sm" id="formCard">
+
+          <div class="card-header">
+            <div>
+              <div class="section-title">Patient Clinical Profile</div>
+              <div class="section-desc">Enter demographic, laboratory, and microbiological data</div>
+            </div>
+            <div class="preset-wrapper">
+              <label for="presetSelect" class="preset-label">Preset:</label>
+              <select id="presetSelect" class="form-select select-sm" aria-label="Select clinical preset">
+                <option value="">— Preset —</option>
+              </select>
+            </div>
+          </div>
+
+          <form id="patientForm" novalidate>
+            <input type="hidden" id="inputPatientId" name="patient_id" value="">
+
+            <!-- Demographics & Labs -->
+            <div class="form-section-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              Demographics &amp; Laboratory Markers
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="inputAge" class="form-label">Age (Years) <span class="req" aria-label="required">*</span></label>
+                <input type="number" id="inputAge" name="age" min="18" max="110" value="52" required class="form-input" aria-required="true">
+              </div>
+              <div class="form-group">
+                <label for="inputSex" class="form-label">Biological Sex <span class="req" aria-label="required">*</span></label>
+                <select id="inputSex" name="sex" required class="form-select" aria-required="true">
+                  <option value="F" selected>Female (F)</option>
+                  <option value="M">Male (M)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="inputCreatinine" class="form-label">Creatinine (mg/dL) <span class="req" aria-label="required">*</span></label>
+                <input type="number" step="0.01" id="inputCreatinine" name="creatinine_mg_dl" min="0.2" max="15.0" value="1.15" required class="form-input" aria-required="true">
+              </div>
+              <div class="form-group">
+                <label for="inputWbc" class="form-label">WBC Count (k/µL) <span class="req" aria-label="required">*</span></label>
+                <input type="number" step="0.1" id="inputWbc" name="wbc_count_k_ul" min="1.0" max="60.0" value="11.4" required class="form-input" aria-required="true">
+              </div>
+            </div>
+
+            <!-- Infection Profile -->
+            <div class="form-section-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              Infection Syndrome &amp; Pathogen
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="inputInfection" class="form-label">Infection Type <span class="req" aria-label="required">*</span></label>
+                <select id="inputInfection" name="infection_type" required class="form-select" aria-required="true">
+                  <option value="UTI" selected>Uncomplicated UTI</option>
+                  <option value="Catheter_Associated_UTI">Catheter-Associated (CAUTI)</option>
+                  <option value="Complicated_UTI">Complicated UTI</option>
+                  <option value="Pyelonephritis">Acute Pyelonephritis</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="inputOrganism" class="form-label">Pathogen <span class="req" aria-label="required">*</span></label>
+                <select id="inputOrganism" name="organism" required class="form-select" aria-required="true">
+                  <option value="E_coli" selected>Escherichia coli</option>
+                  <option value="Klebsiella_pneumoniae">Klebsiella pneumoniae</option>
+                  <option value="Enterococcus_faecalis">Enterococcus faecalis</option>
+                  <option value="Proteus_mirabilis">Proteus mirabilis</option>
+                  <option value="Pseudomonas_aeruginosa">Pseudomonas aeruginosa</option>
+                  <option value="Staph_saprophyticus">Staphylococcus saprophyticus</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="inputPriorUti" class="form-label">Prior UTIs (1 Year)</label>
+                <input type="number" id="inputPriorUti" name="num_prior_uti_1yr" min="0" max="20" value="2" class="form-input">
+              </div>
+            </div>
+
+            <!-- Clinical Risk Factors -->
+            <div class="form-section-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              Clinical History &amp; Exposure Flags
+            </div>
+            <div class="factor-grid" role="group" aria-label="Clinical risk factors">
+
+              <label class="factor-card" for="inputHospital">
+                <input type="checkbox" id="inputHospital" name="recent_hospitalization_90d" checked aria-label="Hospitalization in last 90 days">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Hospitalization (90d)</span>
+              </label>
+
+              <label class="factor-card" for="inputAbx">
+                <input type="checkbox" id="inputAbx" name="recent_antibiotic_use_90d" checked aria-label="Antibiotic exposure in last 90 days">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Antibiotic Exposure (90d)</span>
+              </label>
+
+              <label class="factor-card" for="inputResistantCulture">
+                <input type="checkbox" id="inputResistantCulture" name="prior_resistant_culture_1yr" checked aria-label="Prior resistant culture in last year">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Prior Resistant Culture</span>
+              </label>
+
+              <label class="factor-card" for="inputDiabetes">
+                <input type="checkbox" id="inputDiabetes" name="diabetes" aria-label="Diabetes mellitus">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Diabetes Mellitus</span>
+              </label>
+
+              <label class="factor-card" for="inputCatheter">
+                <input type="checkbox" id="inputCatheter" name="catheter_use" aria-label="Indwelling urinary catheter">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Urinary Catheter</span>
+              </label>
+
+              <label class="factor-card" for="inputImmuno">
+                <input type="checkbox" id="inputImmuno" name="immunocompromised" aria-label="Immunocompromised">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Immunocompromised</span>
+              </label>
+
+              <label class="factor-card" for="inputNursing">
+                <input type="checkbox" id="inputNursing" name="nursing_home_resident" aria-label="Nursing home resident">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Nursing Home</span>
+              </label>
+
+              <label class="factor-card" for="inputTravel">
+                <input type="checkbox" id="inputTravel" name="travel_last_6mo" aria-label="Recent international travel">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Travel (6mo)</span>
+              </label>
+
+              <label class="factor-card" for="inputHcw">
+                <input type="checkbox" id="inputHcw" name="healthcare_worker" aria-label="Healthcare worker">
+                <span class="factor-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="factor-label">Healthcare Worker</span>
+              </label>
+
+            </div>
+
+            <!-- Analyze Button -->
+            <div class="form-actions">
+              <button type="submit" id="btnAnalyze" class="btn btn-primary btn-full btn-lg" aria-label="Run AMR resistance analysis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+                Analyze Resistance Risk
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- RIGHT: Results Panel -->
+        <div id="resultsPanel">
+
+          <div class="card card-sm">
+            <div class="results-header">
+              <div>
+                <div class="section-title">Antibiotic Resistance Profile</div>
+                <div class="section-desc">Model-generated resistance probability across 8 antibiotics</div>
+              </div>
+              <div class="latency-chip" id="latencyBadge" role="status" aria-live="polite">
+                <span class="pulse-dot" aria-hidden="true"></span>
+                <span id="latencyText">Ready for analysis</span>
+              </div>
+            </div>
+
+            <div class="notice-box" role="note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span><strong>Model Attribution:</strong> SHAP values reflect mathematical feature contributions, not clinical causality.</span>
+            </div>
+
+            <!-- Antibiotic Cards Grid -->
+            <div id="resultsGrid" class="abx-grid" aria-live="polite" aria-label="Antibiotic resistance results">
+              <div class="empty-state" style="grid-column:1/-1; padding:36px 16px;">
+                <div class="empty-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <div class="empty-title">No Analysis Yet</div>
+                <div class="empty-desc">Select a clinical preset or enter patient values and click <strong>Analyze Resistance Risk</strong>.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SHAP Explanation Panel -->
+          <div id="shapPanel" class="shap-panel" style="display:none;" role="region" aria-label="SHAP Explainability panel">
+
+            <div class="shap-panel-header">
+              <div class="shap-title-group">
+                <div class="shap-title">Explainable AI — Feature Attributions</div>
+                <div class="shap-subtitle">SHAP values indicate mathematical feature weights contributing to the prediction</div>
+              </div>
+              <div class="shap-controls">
+                <select id="explainAbxSelect" class="form-select select-sm" aria-label="Select antibiotic to explain" style="width:auto;">
+                  <option value="Ciprofloxacin">Ciprofloxacin</option>
+                  <option value="Levofloxacin">Levofloxacin</option>
+                  <option value="Nitrofurantoin">Nitrofurantoin</option>
+                  <option value="Trimethoprim-Sulfamethoxazole">Trimethoprim-Sulfamethoxazole</option>
+                  <option value="Amoxicillin-Clavulanate">Amoxicillin-Clavulanate</option>
+                  <option value="Ceftriaxone">Ceftriaxone</option>
+                  <option value="Gentamicin">Gentamicin</option>
+                  <option value="Fosfomycin">Fosfomycin</option>
+                </select>
+                <div class="shap-toggle-group" role="group" aria-label="SHAP view toggle">
+                  <button id="btnLocalShap" class="toggle-btn active" aria-pressed="true">Patient Waterfall</button>
+                  <button id="btnGlobalShap" class="toggle-btn" aria-pressed="false">Global Importance</button>
+                </div>
+                <div class="shap-pill" aria-live="polite">
+                  <span id="explainAbxName">—</span>
+                  <span class="pill-divider" aria-hidden="true">|</span>
+                  <span id="explainProbText">— %</span>
+                  <span class="risk-badge" id="explainRiskBadge">Risk</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="shap-body">
+              <!-- Factor Lists -->
+              <div class="shap-factors-panel">
+
+                <div>
+                  <div class="factor-group-heading pos" role="heading" aria-level="3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+                    Factors Increasing Resistance Risk
+                  </div>
+                  <div class="shap-factor-list" id="positiveFactorsList" aria-label="Positive SHAP factors">
+                    <div class="empty-factors">Run patient analysis to view risk-increasing factors.</div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="factor-group-heading neg" role="heading" aria-level="3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    Factors Decreasing Resistance Risk
+                  </div>
+                  <div class="shap-factor-list" id="negativeFactorsList" aria-label="Negative SHAP factors">
+                    <div class="empty-factors">Run patient analysis to view risk-decreasing factors.</div>
+                  </div>
+                </div>
+
+                <div class="attribution-notice" role="note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span><strong>Model Attribution Notice:</strong> These features contributed mathematically to the ML model's probability estimate. SHAP values reflect model attribution, <em>not</em> clinical causality.</span>
+                </div>
+
+              </div>
+
+              <!-- SHAP Chart -->
+              <div class="shap-chart-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <div class="section-title" id="shapChartTitle" style="font-size:13px;">SHAP Local Waterfall Breakdown</div>
+                </div>
+                <div id="plotlyShapDiv" style="width:100%; height:320px;"></div>
+              </div>
+
+            </div>
+
+          </div><!-- end shapPanel -->
+
+        </div><!-- end resultsPanel -->
+
+      </div><!-- end analyzerLayout -->
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PAGE 4: PREDICTION HISTORY (LIVE DATABASE LOG)
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="page-history" class="page-view" aria-label="Prediction history">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <div class="page-eyebrow">DATABASE LOG</div>
+            <h1 class="page-title">Prediction History</h1>
+            <p class="page-subtitle">Complete chronological record of all AMR analyses saved in SQLite database.</p>
+          </div>
+          <button class="btn btn-primary" onclick="navigateTo('page-analyzer')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Analysis
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="filter-bar">
+          <div class="filter-group-left">
+            <div class="filter-input-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="historySearchInput" class="filter-input" placeholder="Search ID, patient, pathogen, infection…">
+            </div>
+            <select id="historyRiskFilter" class="form-select select-sm" style="width:140px;">
+              <option value="All">All Risk Levels</option>
+              <option value="High">High Risk</option>
+              <option value="Moderate">Moderate Risk</option>
+              <option value="Low">Low Risk</option>
+            </select>
+          </div>
+          <button class="btn btn-sm btn-secondary" id="btnRefreshHistory">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="clinical-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>Prediction ID</th>
+                <th>Patient ID</th>
+                <th>Pathogen &amp; Syndrome</th>
+                <th>Highest Resistance Risk</th>
+                <th>Timestamp (UTC)</th>
+                <th>Model</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-secondary);">Loading prediction history…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PAGE 5: REPORTS (LIVE CLINICAL DECISION REPORTS & PDF EXPORT)
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="page-reports" class="page-view" aria-label="Reports">
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <div class="page-eyebrow">DOCUMENTATION &amp; DECISION SUPPORT</div>
+            <h1 class="page-title">Clinical Reports</h1>
+            <p class="page-subtitle">Generate, preview, and export standardized AMR Antibiogram Intelligence reports.</p>
+          </div>
+          <button class="btn btn-primary" onclick="navigateTo('page-analyzer')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+            Generate New Report
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-bar mb-3">
+        <div class="filter-group-left">
+          <div class="filter-input-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="reportSearchInput" class="filter-input" placeholder="Search reports by pathogen, patient, ID…">
+          </div>
+        </div>
+      </div>
+
+      <div class="reports-grid" id="reportsGrid">
+        <div style="grid-column:1/-1; text-align:center; padding:32px; color:var(--text-secondary);">Loading clinical reports…</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PAGE 6: ANALYTICS / DATASET INSIGHTS (live EDA data)
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="page-analytics" class="page-view" aria-label="Analytics and dataset insights">
+
+      <div class="page-header">
+        <div class="page-header-row">
+          <div>
+            <div class="page-eyebrow">SYNTHETIC COHORT</div>
+            <h1 class="page-title">Dataset Insights</h1>
+            <p class="page-subtitle">Population characteristics of 20,000 synthetic patient episodes.</p>
+          </div>
+          <span class="demo-data-label">DEMO DATA</span>
+        </div>
+      </div>
+
+      <!-- KPI Grid -->
+      <div class="kpi-grid" role="list" aria-label="Dataset statistics">
+        <div class="kpi-card" role="listitem">
+          <div class="kpi-val" id="kpiPatients">20,000</div>
+          <div class="kpi-label">Total Patient Records</div>
+        </div>
+        <div class="kpi-card" role="listitem">
+          <div class="kpi-val" id="kpiAgeMean">56.0 yrs</div>
+          <div class="kpi-label">Mean Patient Age</div>
+        </div>
+        <div class="kpi-card" role="listitem">
+          <div class="kpi-val" id="kpiOrganisms">6</div>
+          <div class="kpi-label">Distinct Pathogens</div>
+        </div>
+        <div class="kpi-card" role="listitem">
+          <div class="kpi-val" id="kpiAntibiotics">8</div>
+          <div class="kpi-label">Target Antibiotics</div>
+        </div>
+      </div>
+
+      <div class="grid-2 mb-4">
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Resistance Prevalence Across Antibiotics</div>
+              <div class="section-desc">Percentage of resistant isolates in the synthetic cohort</div>
+            </div>
+            <span class="demo-data-label">DEMO</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="edaResistanceChart" aria-label="Resistance prevalence chart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Isolated Pathogen Distribution</div>
+              <div class="section-desc">Microbial species distribution in positive cultures</div>
+            </div>
+            <span class="demo-data-label">DEMO</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="edaOrganismChart" aria-label="Pathogen distribution chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Infection Syndromes</div>
+              <div class="section-desc">Clinical presentation classifications</div>
+            </div>
+            <span class="demo-data-label">DEMO</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="edaInfectionChart" aria-label="Infection syndrome chart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Clinical Risk Factors Prevalence</div>
+              <div class="section-desc">Comorbidities and healthcare exposures</div>
+            </div>
+            <span class="demo-data-label">DEMO</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="edaComorbiditiesChart" aria-label="Comorbidities prevalence chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PAGE 7: AMR-X MODEL INFO (live /api/models data)
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="page-model" class="page-view" aria-label="AMR-X model information">
+
+      <div class="page-header">
+        <div class="page-eyebrow">AI MODEL</div>
+        <h1 class="page-title">AMR-X v1.0 — Model Intelligence</h1>
+        <p class="page-subtitle">Transparent model information, performance metrics, and calibration data.</p>
+      </div>
+
+      <!-- Benchmark Matrix Table -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <div>
+            <div class="section-title">Multi-Model Selection &amp; Benchmark Matrix</div>
+            <div class="section-desc">Antibiotic-specific RF vs. XGBoost performance on test split (20%, N=4,000)</div>
+          </div>
+          <span class="badge badge-info">Stratified Test Set</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="model-metrics-table" id="modelsTable" aria-label="Model benchmark metrics">
+            <thead>
+              <tr>
+                <th>Antibiotic</th>
+                <th>Prevalence</th>
+                <th>Selected Model</th>
+                <th>ROC-AUC</th>
+                <th>F1-Score</th>
+                <th>Recall (Resistant)</th>
+                <th>Precision</th>
+                <th>Accuracy</th>
+                <th>Brier Score</th>
+              </tr>
+            </thead>
+            <tbody id="modelsTableBody">
+              <tr><td colspan="9" style="text-align:center; color:var(--text-secondary); padding:20px;">Loading model benchmark data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ROC Curves + Calibration Diagram -->
+      <div class="grid-2 mb-4">
+        <div class="card">
+          <div class="section-title mb-2">ROC Curves</div>
+          <div class="section-desc mb-3">True Positive Rate vs. False Positive Rate across all 8 models</div>
+          <div class="chart-container">
+            <canvas id="rocChartCanvas" aria-label="ROC curves chart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title mb-2">Probability Calibration &amp; Reliability Diagram</div>
+          <div class="section-desc mb-3">Observed Fraction of Positives vs. Predicted Resistance Probability</div>
+          <div class="chart-container">
+            <canvas id="calibChartCanvas" aria-label="Calibration curves chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Architecture and Methodology -->
+      <div class="card">
+        <div class="section-title mb-3">System Architecture &amp; Scientific Methodology</div>
+
+        <div class="pipeline-flow" role="list" aria-label="Processing pipeline">
+          <div class="flow-step" role="listitem">
+            <div class="flow-step-num" aria-hidden="true">1</div>
+            <div class="flow-step-title">Clinical Data Input</div>
+            <div class="flow-step-desc">16 patient features: Demographics, Labs, Pathogen, Exposures</div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-step" role="listitem">
+            <div class="flow-step-num" aria-hidden="true">2</div>
+            <div class="flow-step-title">Strict Validation</div>
+            <div class="flow-step-desc">Zero leakage of patient_id or synthetic probability columns</div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-step" role="listitem">
+            <div class="flow-step-num" aria-hidden="true">3</div>
+            <div class="flow-step-title">Preprocessing</div>
+            <div class="flow-step-desc">Standardized ColumnTransformer · OneHot encoding</div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-step" role="listitem">
+            <div class="flow-step-num" aria-hidden="true">4</div>
+            <div class="flow-step-title">8 ML Models</div>
+            <div class="flow-step-desc">RandomForest vs XGBoost with Platt Sigmoid calibration</div>
+          </div>
+          <div class="flow-arrow" aria-hidden="true">→</div>
+          <div class="flow-step" role="listitem">
+            <div class="flow-step-num" aria-hidden="true">5</div>
+            <div class="flow-step-title">SHAP Explainer</div>
+            <div class="flow-step-desc">Local waterfall &amp; global feature contribution decomposition</div>
+          </div>
+        </div>
+
+        <div class="info-columns mt-4">
+          <div class="info-block">
+            <div class="info-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Critical Anti-Leakage Rules
+            </div>
+            <ul class="info-list">
+              <li><strong>Exclusion of Target Probabilities:</strong> All 8 <code>*_resistance_probability</code> columns strictly purged prior to training.</li>
+              <li><strong>Patient Identifier Protection:</strong> <code>patient_id</code> is discarded and never used as a predictive feature.</li>
+              <li><strong>Stratified Isolation:</strong> Preprocessing and models trained strictly on training splits without test leakage.</li>
+            </ul>
+          </div>
+          <div class="info-block">
+            <div class="info-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Known Limitations
+            </div>
+            <ul class="info-list">
+              <li><strong>Synthetic Cohort:</strong> Dataset is synthetic. Performance on real clinical AST data will differ significantly.</li>
+              <li><strong>Imbalanced Classes:</strong> Low-prevalence agents (e.g. Fosfomycin 10.2%) suffer lower precision despite class weighting.</li>
+              <li><strong>Non-Causal Attribution:</strong> SHAP values indicate associative mathematical feature weights, not biological causality.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         PAGE 8: SETTINGS
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="page-settings" class="page-view" aria-label="Settings">
+      <div class="page-header">
+        <div class="page-eyebrow">CONFIGURATION</div>
+        <h1 class="page-title">Settings &amp; Preferences</h1>
+        <p class="page-subtitle">Application configuration, storage paths, and model engine parameters.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title mb-3">Database Persistence</div>
+          <div class="recent-analyses-grid">
+            <div class="analysis-row">
+              <div class="analysis-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+              <div class="analysis-row-body">
+                <div class="analysis-row-title">SQLite Database Engine</div>
+                <div class="analysis-row-meta">data/amr_history.db · Active &amp; Synced</div>
+              </div>
+              <span class="badge badge-info">Connected</span>
+            </div>
+            <div class="analysis-row">
+              <div class="analysis-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div class="analysis-row-body">
+                <div class="analysis-row-title">Auto-Save Predictions</div>
+                <div class="analysis-row-meta">Every inference event is timestamped &amp; archived</div>
+              </div>
+              <span class="badge badge-info">Enabled</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title mb-3">AI Engine Metadata</div>
+          <div class="recent-analyses-grid">
+            <div class="analysis-row">
+              <div class="analysis-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4"/></svg></div>
+              <div class="analysis-row-body">
+                <div class="analysis-row-title">AMR-X Intelligence v1.0</div>
+                <div class="analysis-row-meta">Scikit-Learn 1.7+ &amp; XGBoost 2.0+</div>
+              </div>
+              <span class="badge badge-info">Production Ready</span>
+            </div>
+            <div class="analysis-row">
+              <div class="analysis-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12h4l3-9 5 18 3-9h4"/></svg></div>
+              <div class="analysis-row-body">
+                <div class="analysis-row-title">TreeExplainer Attribution</div>
+                <div class="analysis-row-meta">Fast local waterfall &amp; global shap summary</div>
+              </div>
+              <span class="badge badge-info">Online</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     REPORT PREVIEW & EXPORT MODAL
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="reportModal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title" id="reportModalTitle">AMR Antibiogram Intelligence Report</div>
+      <button class="modal-close" id="btnCloseReportModal" aria-label="Close report">&times;</button>
+    </div>
+    <div class="modal-body" id="reportBody">
+      <!-- Injected via JavaScript -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnDismissReport">Close</button>
+      <button class="btn btn-primary" id="btnPrintReport">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / Save PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Application JS -->
+<script src="/static/js/app.js"></script>
+</body>
+</html>
