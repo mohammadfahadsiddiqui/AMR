@@ -1,8 +1,8 @@
 """Tree Explainable-AI Engine for AMR-Predict.
 
 Computes local patient-specific and global feature attributions using
-native Tree SHAP / tree decision path decomposition. Clarifies mathematical
-attribution vs. clinical causality.
+native decision tree path decomposition. Clarifies mathematical
+attribution vs. clinical causality without external C-extension dependencies.
 """
 
 import json
@@ -131,31 +131,42 @@ def _compute_rf_contributions(model: Any, X_enc: np.ndarray) -> Tuple[np.ndarray
     return contributions / n_trees, base_val / n_trees
 
 
-def _compute_xgb_contributions(model: Any, X_enc: np.ndarray) -> Tuple[np.ndarray, float]:
-    """Computes native Tree SHAP contributions using XGBoost booster."""
-    try:
-        import xgboost as xgb
-        dmat = xgb.DMatrix(X_enc)
-        contribs = model.get_booster().predict(dmat, pred_contribs=True)
-        sv = contribs[0, :-1]
-        base_val = float(contribs[0, -1])
-        prob = float(model.predict_proba(X_enc)[0, 1])
-        base_prob = 1.0 / (1.0 + np.exp(-base_val)) if base_val != 0 else 0.5
-        total_margin = np.sum(sv)
-        if abs(total_margin) > 1e-6:
-            prob_diff = prob - base_prob
-            sv_prob = sv * (prob_diff / total_margin)
-        else:
-            sv_prob = sv
-        return sv_prob, base_prob
-    except Exception as e:
-        logger.warning(f"XGB native contrib error, using fallback: {e}")
-        importances = getattr(model, "feature_importances_", np.ones(X_enc.shape[1]))
-        prob = float(model.predict_proba(X_enc)[0, 1])
-        base_val = 0.5
-        delta = prob - base_val
-        sv = (importances / np.sum(importances)) * delta
-        return sv, base_val
+def _compute_gb_contributions(model: Any, X_enc: np.ndarray) -> Tuple[np.ndarray, float]:
+    """Computes exact stage-wise decision tree contributions for Gradient Boosting."""
+    n_features = X_enc.shape[1]
+    init_estimator = getattr(model, "init_", None)
+    if init_estimator is not None and hasattr(init_estimator, "predict_proba"):
+        base_prob = float(init_estimator.predict_proba(X_enc)[0, 1])
+    else:
+        base_prob = 0.5
+
+    prob = float(model.predict_proba(X_enc)[0, 1])
+    lr = getattr(model, "learning_rate", 0.1)
+    margin_contributions = np.zeros(n_features)
+
+    for stage in model.estimators_:
+        dt = stage[0] if isinstance(stage, (list, np.ndarray)) else stage
+        tree = dt.tree_
+        node_indicator = dt.decision_path(X_enc)
+        node_index = node_indicator.indices[node_indicator.indptr[0]:node_indicator.indptr[1]]
+        values = tree.value[:, 0, 0]
+        for i in range(len(node_index) - 1):
+            curr_node = node_index[i]
+            next_node = node_index[i+1]
+            feature = tree.feature[curr_node]
+            diff = values[next_node] - values[curr_node]
+            margin_contributions[feature] += lr * diff
+
+    total_margin = np.sum(margin_contributions)
+    if abs(total_margin) > 1e-6:
+        prob_diff = prob - base_prob
+        sv_prob = margin_contributions * (prob_diff / total_margin)
+    else:
+        importances = getattr(model, "feature_importances_", np.ones(n_features))
+        delta = prob - base_prob
+        sv_prob = (importances / np.sum(importances)) * delta
+
+    return sv_prob, base_prob
 
 
 def explain_patient_prediction(
@@ -177,10 +188,10 @@ def explain_patient_prediction(
     feature_names = get_preprocessed_feature_names(preprocessor)
 
     # Compute contributions based on model architecture
-    if model_type == "Random Forest" or hasattr(model, "estimators_"):
+    if model_type == "Random Forest" or (hasattr(model, "estimators_") and not isinstance(model.estimators_[0], (list, np.ndarray))):
         sv, base_val = _compute_rf_contributions(model, X_enc)
     else:
-        sv, base_val = _compute_xgb_contributions(model, X_enc)
+        sv, base_val = _compute_gb_contributions(model, X_enc)
 
     prob_resistant = float(model.predict_proba(X_enc)[0, 1])
 
@@ -228,17 +239,17 @@ def explain_patient_prediction(
 
 
 def get_global_shap_summary(antibiotic: Optional[str] = None) -> Dict[str, Any]:
-    """Retrieves pre-calculated global SHAP feature importances."""
+    """Retrieves pre-calculated global feature importances."""
     shap_path = ARTIFACTS_DIR / "global_shap_summary.json"
     if not shap_path.exists():
-        raise FileNotFoundError("Global SHAP summary not found in artifacts.")
+        raise FileNotFoundError("Global feature summary not found in artifacts.")
 
     with open(shap_path, "r") as f:
         data = json.load(f)
 
     if antibiotic:
         if antibiotic not in data:
-            raise KeyError(f"Antibiotic '{antibiotic}' not in global SHAP summary.")
+            raise KeyError(f"Antibiotic '{antibiotic}' not in global summary.")
         return {
             "antibiotic": antibiotic,
             "global_shap": data[antibiotic],

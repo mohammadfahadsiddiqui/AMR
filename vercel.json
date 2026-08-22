@@ -1,4 +1,10 @@
 {
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "app/**|models/**|src/**|artifacts/**",
+      "excludeFiles": "data/**|tests/**|*.csv|*.md"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
