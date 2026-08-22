@@ -1,7 +1,7 @@
 """FastAPI Backend Server for AMR-Predict.
 
 Exposes high-performance RESTful endpoints for multi-antibiotic resistance prediction,
-local/global SHAP explainability, model comparison benchmarks, dataset EDA,
+local/global feature explainability, model comparison benchmarks, dataset EDA,
 patient records directory, historical prediction tracking, and clinical report generation.
 """
 
@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -109,39 +109,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Vercel Serverless Path Normalization Middleware
-@app.middleware("http")
-async def fix_vercel_path(request: Request, call_next):
-    path = request.scope.get("path", "")
-    for prefix in ["/api/index.py", "/api/index"]:
-        if path.startswith(prefix):
-            new_path = path[len(prefix):]
-            if not new_path or new_path == "":
-                new_path = "/"
-            request.scope["path"] = new_path
-            break
-    return await call_next(request)
-
-# Mount Static Files
-STATIC_DIR = BASE_DIR / "app" / "static"
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+# Mount Static Files for local development
+STATIC_DIR = BASE_DIR / "public" if (BASE_DIR / "public").exists() else BASE_DIR / "app" / "static"
+if (STATIC_DIR / "static").exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR / "static")), name="static")
+elif (BASE_DIR / "app" / "static").exists():
+    app.mount("/static", StaticFiles(directory=str(BASE_DIR / "app" / "static")), name="static")
 
 
-# ─── Endpoints ───────────────────────────────────────────────────────────────
+# ─── API Router (Dual-prefix for direct and reverse-proxied environments) ────
+api_router = APIRouter()
+
 
 @app.get("/")
-@app.get("/api/index")
-@app.get("/api/index.py")
 def serve_index():
     """Serves the main AMR-Predict Clinical AI Intelligence dashboard."""
-    index_file = STATIC_DIR / "index.html"
+    index_file = (STATIC_DIR / "index.html") if (STATIC_DIR / "index.html").exists() else (BASE_DIR / "app" / "static" / "index.html")
     if index_file.exists():
         return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
-    return JSONResponse({"message": "AMR-Predict API is online. UI static files not found."})
+    return JSONResponse({"message": "AMR-Predict API is online. Frontend static files served from CDN."})
 
 
-@app.get("/api/health")
+@api_router.get("/health")
 def get_health():
     """System health check and loaded model status."""
     reg_path = ARTIFACTS_DIR / "model_registry.json"
@@ -154,7 +143,7 @@ def get_health():
     }
 
 
-@app.get("/api/config")
+@api_router.get("/config")
 def get_system_config():
     """Returns clinical categories, ranges, display names, presets, and safety disclaimers."""
     presets = [
@@ -268,7 +257,7 @@ def get_system_config():
     }
 
 
-@app.post("/api/predict")
+@api_router.post("/predict")
 def api_predict_patient(payload: PatientInputSchema):
     """Executes multi-model AMR resistance probability prediction and saves record to database."""
     try:
@@ -292,9 +281,9 @@ def api_predict_patient(payload: PatientInputSchema):
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
 
-@app.post("/api/explain")
+@api_router.post("/explain")
 def api_explain_prediction(payload: ExplainRequestSchema):
-    """Generates local SHAP feature attributions and waterfall decomposition."""
+    """Generates local feature attributions and waterfall decomposition."""
     try:
         data_dict = payload.patient_data.model_dump()
         data_dict.pop("patient_id", None)
@@ -309,7 +298,7 @@ def api_explain_prediction(payload: ExplainRequestSchema):
         raise HTTPException(status_code=500, detail=f"Explanation error: {str(e)}")
 
 
-@app.get("/api/history")
+@api_router.get("/history")
 def api_get_history(
     search: Optional[str] = Query(None, description="Search by ID, patient ID, organism, or infection"),
     risk: Optional[str] = Query(None, description="Filter by risk category ('High', 'Moderate', 'Low', 'All')"),
@@ -325,7 +314,7 @@ def api_get_history(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/history/{prediction_id}")
+@api_router.get("/history/{prediction_id}")
 def api_get_prediction_details(prediction_id: str):
     """Retrieves full details of a specific prediction from database."""
     record = get_prediction_by_id(prediction_id)
@@ -334,7 +323,7 @@ def api_get_prediction_details(prediction_id: str):
     return record
 
 
-@app.delete("/api/history/{prediction_id}")
+@api_router.delete("/history/{prediction_id}")
 def api_delete_prediction(prediction_id: str):
     """Deletes a historical prediction record."""
     success = delete_prediction(prediction_id)
@@ -343,7 +332,7 @@ def api_delete_prediction(prediction_id: str):
     return {"status": "deleted", "id": prediction_id}
 
 
-@app.get("/api/patients")
+@api_router.get("/patients")
 def api_get_patients():
     """Returns patient directory aggregated from database history."""
     try:
@@ -354,7 +343,7 @@ def api_get_patients():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/reports")
+@api_router.get("/reports")
 def api_get_reports(search: Optional[str] = None):
     """Returns list of clinical reports available for preview and export."""
     try:
@@ -379,7 +368,7 @@ def api_get_reports(search: Optional[str] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/reports/{prediction_id}")
+@api_router.get("/reports/{prediction_id}")
 def api_get_report_detail(prediction_id: str):
     """Generates detailed clinical decision-support report data for PDF/print preview."""
     record = get_prediction_by_id(prediction_id)
@@ -416,7 +405,7 @@ def api_get_report_detail(prediction_id: str):
     }
 
 
-@app.get("/api/stats")
+@api_router.get("/stats")
 def api_get_stats():
     """Returns database summary counts for the platform dashboard."""
     try:
@@ -426,7 +415,7 @@ def api_get_stats():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/models")
+@api_router.get("/models")
 def get_model_registry_and_metrics():
     """Returns model selection registry, candidate comparison table, and ROC/PR curves."""
     try:
@@ -451,7 +440,7 @@ def get_model_registry_and_metrics():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/eda")
+@api_router.get("/eda")
 def get_dataset_eda():
     """Returns dataset summary statistics and feature distributions."""
     try:
@@ -467,10 +456,15 @@ def get_dataset_eda():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/global-shap")
+@api_router.get("/global-shap")
 def get_global_shap(antibiotic: Optional[str] = None):
-    """Returns dataset-wide SHAP feature importance rankings."""
+    """Returns dataset-wide feature importance rankings."""
     try:
         return get_global_shap_summary(antibiotic)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Register API Router under both /api and root paths for maximum compatibility
+app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="")
