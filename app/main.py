@@ -21,7 +21,7 @@ if str(BASE_DIR) not in sys.path:
 
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -109,6 +109,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Vercel Serverless Path Normalization Middleware
+@app.middleware("http")
+async def fix_vercel_path(request: Request, call_next):
+    path = request.scope.get("path", "")
+    for prefix in ["/api/index.py", "/api/index"]:
+        if path.startswith(prefix):
+            new_path = path[len(prefix):]
+            if not new_path or new_path == "":
+                new_path = "/"
+            request.scope["path"] = new_path
+            break
+    return await call_next(request)
+
 # Mount Static Files
 STATIC_DIR = BASE_DIR / "app" / "static"
 if STATIC_DIR.exists():
@@ -118,11 +131,13 @@ if STATIC_DIR.exists():
 # ─── Endpoints ───────────────────────────────────────────────────────────────
 
 @app.get("/")
+@app.get("/api/index")
+@app.get("/api/index.py")
 def serve_index():
     """Serves the main AMR-Predict Clinical AI Intelligence dashboard."""
     index_file = STATIC_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(str(index_file))
+        return HTMLResponse(content=index_file.read_text(encoding="utf-8"))
     return JSONResponse({"message": "AMR-Predict API is online. UI static files not found."})
 
 
